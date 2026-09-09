@@ -25,13 +25,9 @@ def get_device(enable_tensor_cores=True):
         print("Using NVIDIA CUDA GPU")
 
         if enable_tensor_cores:
-            major, minor = map(int, torch.__version__.split(".")[:2])
-            if (major, minor) >= (2, 9):
-                torch.backends.cuda.matmul.fp32_precision = "tf32"
-                torch.backends.cudnn.conv.fp32_precision = "tf32"
-            else:
-                torch.backends.cuda.matmul.allow_tf32 = True
-                torch.backends.cudnn.allow_tf32 = True
+            # This single unified line replaces all version checks and backend flags
+            torch.set_float32_matmul_precision("high")
+
     elif torch.backends.mps.is_available():
         device = torch.device('mps')
         print("Using Apple Silicon GPU (MPS)")
@@ -49,7 +45,7 @@ def get_device(enable_tensor_cores=True):
 device = get_device()
 
 # Temporary force CPU for compatibility checks
-device = torch.device("mps")
+device = torch.device("cuda")
 
 download_qwen3_small(kind="base", tokenizer_only=False, out_dir="qwen3")
 
